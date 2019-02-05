@@ -1,0 +1,15 @@
+{
+  "type" : "record",
+  "name" : "test_schema",
+  "namespace" : "streamsx.avro.tests",
+  "fields" : [ {
+    "name" : "p",
+    "type" : "string",
+    "doc" : "prefix"
+  }, {
+    "name" : "c",
+    "type" : "long",
+    "doc" : "counter"
+  }],
+  "doc:" : "test message schema"
+}
