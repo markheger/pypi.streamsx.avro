@@ -32,16 +32,45 @@ Documentation links:
 
 Package can be tested with TopologyTester using the [Streaming Analytics](https://www.ibm.com/cloud/streaming-analytics) service.
 
+Run the test with:
+
+    ant test-sas
+
+or
+
 ```
 cd package
 python3 -u -m unittest streamsx.avro.tests.test_avro.TestStreamingAnalytics
 ```
+
+#### Remote build
+
+For using the toolkit from the build service (**force_remote_build**) run the test with:
+
+Run the test with:
+
+    ant test-sas-remote
+
+or
+
+```
+cd package
+python3 -u -m unittest streamsx.avro.tests.test_avro.TestStreamingAnalyticsRemote
+```
+
+### Local Streams instance
 
 Package can be tested with TopologyTester using a local and running Streams domain.
 Make sure that the streams environment is set, the domain and instance is running and the environment variables:
 STREAMS_USERNAME
 STREAMS_PASSWORD
 are setup.
+
+Run the test with:
+
+    ant test
+
+or
 
 ```
 cd package
