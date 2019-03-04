@@ -13,9 +13,11 @@ The following transformations are supported:
  * AVRO -> JSON
 
 
-This package is compatible with Streaming Analytics service on IBM Cloud:
+This package exposes the `com.ibm.streamsx.avro <https://ibmstreams.github.io/streamsx.avro/>`_ toolkit as Python methods for use with Streaming Analytics service on
+IBM Cloud and IBM Streams including IBM Cloud Private for Data.
 
-  * `IBM Streaming Analytics <https://www.ibm.com/cloud/streaming-analytics>`_
+ * `Streaming Analytics service <https://console.ng.bluemix.net/catalog/services/streaming-analytics>`_
+ * `IBM Streams developer community <https://developer.ibm.com/streamsdev/>`_
 
 Sample
 ++++++
@@ -39,10 +41,12 @@ A simple example of a Streams application that serializes and deserializes messa
     res.print()
 
     submit('STREAMING_ANALYTICS_SERVICE', topo)
+    # Use for IBM Streams including IBM Cloud Private for Data
+    # submit ('DISTRIBUTED', topo, cfg)
 
 """
 
-__version__='1.0.0'
+__version__='1.0.1'
 
 __all__ = ['json_to_avro', 'avro_to_json']
 from streamsx.avro._avro import json_to_avro, avro_to_json
