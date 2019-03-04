@@ -64,7 +64,7 @@ def json_to_avro(stream, message_schema, embed_avro_schema=False, time_per_messa
 
 
     _op = _JSONToAvro(stream, schema=AvroStreamSchema, name=name)
-    _op.params['avroMessageSchemaFile'] = _op.expression('getApplicationDir()+"/'+_add_avro_message_schema_file(stream.topology, message_schema)+'"')
+    _op.params['avroMessageSchemaFile'] = _op.expression('getThisToolkitDir()+"/'+_add_avro_message_schema_file(stream.topology, message_schema)+'"')
 
     if embed_avro_schema is True:
         _op.params['embedAvroSchema'] = _op.expression('true')
@@ -94,7 +94,7 @@ def avro_to_json(stream, message_schema=None, name=None):
 
     _op = _AvroToJSON(stream, schema=CommonSchema.Json, name=name)
     if message_schema is not None:
-        _op.params['avroMessageSchemaFile'] = _op.expression('getApplicationDir()+"/'+_add_avro_message_schema_file(stream.topology, message_schema)+'"')
+        _op.params['avroMessageSchemaFile'] = _op.expression('getThisToolkitDir()+"/'+_add_avro_message_schema_file(stream.topology, message_schema)+'"')
     return _op.outputs[0]
 
 
