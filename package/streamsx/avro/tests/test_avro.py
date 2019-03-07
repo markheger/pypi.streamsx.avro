@@ -75,7 +75,7 @@ class TestAvro(TestCase):
 class TestDistributed(TestAvro):
     def setUp(self):
         Tester.setup_distributed(self)
-        self.avro_toolkit_home = os.environ["AVRO_TOOLKIT_HOME"]
+        self.avro_toolkit_home = os.environ["STREAMSX_AVRO_TOOLKIT"]
         # setup test config
         self.test_config = {}
         job_config = streamsx.topology.context.JobConfig(tracing='info')
@@ -85,7 +85,7 @@ class TestDistributed(TestAvro):
 class TestStreamingAnalytics(TestAvro):
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=False)
-        self.avro_toolkit_home = os.environ["AVRO_TOOLKIT_HOME"]
+        self.avro_toolkit_home = os.environ["STREAMSX_AVRO_TOOLKIT"]
 
     @classmethod
     def setUpClass(self):
@@ -97,7 +97,7 @@ class TestStreamingAnalytics(TestAvro):
 class TestStreamingAnalyticsRemote(TestStreamingAnalytics):
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
-        self.avro_toolkit_home = os.environ["AVRO_TOOLKIT_HOME"]
+        self.avro_toolkit_home = os.environ["STREAMSX_AVRO_TOOLKIT"]
 
     @classmethod
     def setUpClass(self):

@@ -54,7 +54,7 @@ When the documented sample must be changed, change it here:
 
 When using local build (e.g. not forcing remote build), then you need to specifiy the toolkit location, for example:
 
-    export AVRO_TOOLKIT_HOME=<PATH_TO_AVRO_TOOLKIT>/com.ibm.streamsx.avro
+    export STREAMSX_AVRO_TOOLKIT=<PATH_TO_AVRO_TOOLKIT>/com.ibm.streamsx.avro
 
 
 ### Streaming Analytics service
