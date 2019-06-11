@@ -34,7 +34,8 @@ class TestAvro(TestCase):
 
     def test_hw_json(self):
         topo = Topology('test_hw_json')
-        streamsx.spl.toolkit.add_toolkit(topo, self.avro_toolkit_home)
+        if self.avro_toolkit_home is not None:
+            streamsx.spl.toolkit.add_toolkit(topo, self.avro_toolkit_home)
 
         avro_schema = '{"type" : "record", "name" : "hw_schema", "fields" : [{"name" : "a", "type" : "string"}]}'
         s = topo.source([{'a': 'Hello'}, {'a': 'World'}, {'a': '!'}]).as_json()
@@ -54,7 +55,8 @@ class TestAvro(TestCase):
 
     def test_hw_embed_schema(self):
         topo = Topology('test_hw_embed_schema')
-        streamsx.spl.toolkit.add_toolkit(topo, self.avro_toolkit_home)
+        if self.avro_toolkit_home is not None:
+            streamsx.spl.toolkit.add_toolkit(topo, self.avro_toolkit_home)
  
         avro_schema = '{"type" : "record", "name" : "hw_schema", "fields" : [{"name" : "a", "type" : "string"}]}'
         s = topo.source([{'a': 'Hello'}, {'a': 'World'}, {'a': '!'},{'a': 'Hello'}, {'a': 'World'}, {'a': '!'}]).as_json()
@@ -75,17 +77,28 @@ class TestAvro(TestCase):
 class TestDistributed(TestAvro):
     def setUp(self):
         Tester.setup_distributed(self)
-        self.avro_toolkit_home = os.environ["AVRO_TOOLKIT_HOME"]
+        self.avro_toolkit_home = os.environ["STREAMSX_AVRO_TOOLKIT"]
         # setup test config
         self.test_config = {}
         job_config = streamsx.topology.context.JobConfig(tracing='info')
         job_config.add(self.test_config)
         self.test_config[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False  
 
+class TestICPRemote(TestAvro):
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.avro_toolkit_home = None
+        # setup test config
+        self.test_config = {}
+        job_config = streamsx.topology.context.JobConfig(tracing='info')
+        job_config.add(self.test_config)
+        self.test_config[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False  
+
+
 class TestStreamingAnalytics(TestAvro):
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=False)
-        self.avro_toolkit_home = os.environ["AVRO_TOOLKIT_HOME"]
+        self.avro_toolkit_home = os.environ["STREAMSX_AVRO_TOOLKIT"]
 
     @classmethod
     def setUpClass(self):
@@ -97,7 +110,7 @@ class TestStreamingAnalytics(TestAvro):
 class TestStreamingAnalyticsRemote(TestStreamingAnalytics):
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
-        self.avro_toolkit_home = os.environ["AVRO_TOOLKIT_HOME"]
+        self.avro_toolkit_home = os.environ["STREAMSX_AVRO_TOOLKIT"]
 
     @classmethod
     def setUpClass(self):

@@ -18,6 +18,11 @@ Documentation is using Sphinx and can be built locally using:
 cd package/docs
 make html
 ```
+
+or
+
+    ant doc
+
 and viewed using
 ```
 firefox package/docs/build/html/index.html
@@ -28,7 +33,31 @@ The documentation is also setup at `readthedocs.io`.
 Documentation links:
 * http://streamsxavro.readthedocs.io
 
+## Version update
+
+To change the version information of the Python package, edit following files:
+
+- ./package/docs/source/conf.py
+- ./package/streamsx/avro/\_\_init\_\_.py
+
+When the development status changes, edit the *classifiers* in
+
+- ./package/setup.py
+
+When the documented sample must be changed, change it here:
+
+- ./package/streamsx/avro/\_\_init\_\_.py
+- ./package/DESC.txt
+
+
 ## Test
+
+When using local build (e.g. not forcing remote build), then you need to specifiy the toolkit location, for example:
+
+    export STREAMSX_AVRO_TOOLKIT=<PATH_TO_AVRO_TOOLKIT>/com.ibm.streamsx.avro
+
+
+### Streaming Analytics service
 
 Package can be tested with TopologyTester using the [Streaming Analytics](https://www.ibm.com/cloud/streaming-analytics) service.
 
