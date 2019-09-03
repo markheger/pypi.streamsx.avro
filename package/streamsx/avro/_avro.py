@@ -9,6 +9,9 @@ import streamsx.spl.types
 from streamsx.topology.schema import CommonSchema, StreamSchema
 from streamsx.spl.types import rstring
 import datetime
+from streamsx.toolkits import download_toolkit
+
+_TOOLKIT_NAME = 'com.ibm.streamsx.avro'
 
 
 AvroStreamSchema = StreamSchema('tuple<blob binary>')
@@ -40,6 +43,42 @@ def _add_avro_message_schema_file(topology, message_schema):
     topology.add_file_dependency(path, 'etc')
     filename = os.path.basename(path)
     return 'etc/'+filename
+
+def download_toolkit(url=None, target_dir=None):
+    r"""Downloads the latest Avro toolkit from GitHub.
+
+    Example for updating the Avro toolkit for your topology with the latest toolkit from GitHub::
+
+        import streamsx.avro as avro
+        # download Avro toolkit from GitHub
+        avro_toolkit_location = avro.download_toolkit()
+        # add the toolkit to topology
+        streamsx.spl.toolkit.add_toolkit(topology, avro_toolkit_location)
+
+    Example for updating the topology with a specific version of the Avro toolkit using a URL::
+
+        import streamsx.avro as avro
+        url122 = 'https://github.com/IBMStreams/streamsx.avro/releases/download/v1.2.2/streamsx.avro-1.2.2-95c5cd9-20190311-1233.tgz'
+        avro_toolkit_location = avro.download_toolkit(url=url122)
+        streamsx.spl.toolkit.add_toolkit(topology, avro_toolkit_location)
+
+    Args:
+        url(str): Link to toolkit archive (\*.tgz) to be downloaded. Use this parameter to 
+            download a specific version of the toolkit.
+        target_dir(str): the directory where the toolkit is unpacked to. If a relative path is given,
+            the path is appended to the system temporary directory, for example to /tmp on Unix/Linux systems.
+            If target_dir is ``None`` a location relative to the system temporary directory is chosen.
+
+    Returns:
+        str: the location of the downloaded Avro toolkit
+
+    .. note:: This function requires an outgoing Internet connection
+    .. versionadded:: 1.1
+    """
+    _toolkit_location = streamsx.toolkits.download_toolkit (toolkit_name=_TOOLKIT_NAME, url=url, target_dir=target_dir)
+    return _toolkit_location
+
+
 
 def json_to_avro(stream, message_schema, embed_avro_schema=False, time_per_message=None, tuples_per_message=None, bytes_per_message=None, name=None):
     """Converts JSON strings into binary Avro messages.

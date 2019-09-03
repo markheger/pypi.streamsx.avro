@@ -46,8 +46,8 @@ A simple example of a Streams application that serializes and deserializes messa
 
 """
 
-__version__='1.0.2'
+__version__='1.1.0'
 
-__all__ = ['json_to_avro', 'avro_to_json']
-from streamsx.avro._avro import json_to_avro, avro_to_json
+__all__ = ['download_toolkit', 'json_to_avro', 'avro_to_json']
+from streamsx.avro._avro import download_toolkit, json_to_avro, avro_to_json
 
