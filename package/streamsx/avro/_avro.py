@@ -10,11 +10,12 @@ from streamsx.topology.schema import CommonSchema, StreamSchema
 from streamsx.spl.types import rstring
 import datetime
 from streamsx.toolkits import download_toolkit
+import streamsx.topology.composite
 
 _TOOLKIT_NAME = 'com.ibm.streamsx.avro'
 
 
-AvroStreamSchema = StreamSchema('tuple<blob binary>')
+AvroStreamSchema = CommonSchema.Binary
 """Structured schema containing the message in Avro format.
 
 ``'tuple<blob binary>'``
@@ -81,10 +82,10 @@ def download_toolkit(url=None, target_dir=None):
 
 
 def json_to_avro(stream, message_schema, embed_avro_schema=False, time_per_message=None, tuples_per_message=None, bytes_per_message=None, name=None):
-    """Converts JSON strings into binary Avro messages.
+    """Converts JSON strings into binary Avro messages with schema :py:const:`CommonSchema.Binary`. 
 
     Args:
-        stream(Stream): Stream of tuples containing the JSON records. Supports ``CommonSchema.Json`` as input.
+        stream(Stream): Stream of tuples containing the JSON records. Supports :py:const:`CommonSchema.Json` as input.
         message_schema(str|file): Avro schema to serialize the Avro message from JSON input.
         embed_avro_schema(bool): Embed the schema in the generated Avro message. When generating Avro messages that must be persisted to a file system, the schema is expected to be included in the file. If this parameter is set to true, incoming JSON tuples are batched and a large binary object that contains the Avro schema and 1 or more messages is generated. Also, you must specify one of the parameters (bytes_per_message, tuples_per_message, time_per_message) that controls when Avro message block is submitted to the output port, otherwise it would expect a window punctuation marker. After submitting the Avro message to the output port, a punctuation is generated so that the receiving operator can potentially create a new file. 
         time_per_file(int|float|datetime.timedelta): Specifies the approximate time, in seconds, after before the Avro message block is submitted to the output port. Only valid if Avro schema is embedded. The ``bytes_per_message``, ``time_per_message`` and ``tuples_per_message`` parameters are mutually exclusive.
@@ -94,7 +95,7 @@ def json_to_avro(stream, message_schema, embed_avro_schema=False, time_per_messa
         name(str): Operator name in the Streams context, defaults to a generated name.
 
     Returns:
-        Output Stream with schema :py:const:`~streamsx.avro.AvroStreamSchema` (Avro records in binary format).
+        Output Stream with schema :py:const:`CommonSchema.Binary` (Avro records in binary format).
     """
 
     # check bytes_per_message, time_per_message and tuples_per_message parameters
@@ -123,18 +124,138 @@ def avro_to_json(stream, message_schema=None, name=None):
     """Converts binary Avro messages to JSON strings.
 
     Args:
-        stream(Stream): Stream of tuples containing the binary Avro records.
+        stream(Stream): Stream of tuples containing the binary Avro records. Supports :py:const:`CommonSchema.Binary` as input.
         message_schema(str|file): Avro schema to deserialize the binary Avro message to JSON. If not specified, it is expected that the schema is embedded in the message.
         name(str): Operator name in the Streams context, defaults to a generated name.
 
     Returns:
-        Output Stream with schema :py:const:`~CommonSchema.Json`.
+        Output Stream with schema :py:const:`CommonSchema.Json`.
     """
 
     _op = _AvroToJSON(stream, schema=CommonSchema.Json, name=name)
     if message_schema is not None:
         _op.params['avroMessageSchemaFile'] = _op.expression('getThisToolkitDir()+"/'+_add_avro_message_schema_file(stream.topology, message_schema)+'"')
     return _op.outputs[0]
+
+
+class AvroToJSON(streamsx.topology.composite.Map):
+    """
+    Converts binary Avro messages to JSON strings.
+
+    Supports :py:const:`CommonSchema.Binary` as input and returns output stream with schema :py:const:`CommonSchema.Json`.
+
+    Example mapping stream ``b`` with binary AVRO messages to JSON strings in stream ``j``::
+
+        import streamsx.avro as avro
+        topo = Topology()
+        ...
+        avro_schema = '{"type" : "record", "name" : "hw_schema", "fields" : [{"name" : "a", "type" : "string"}]}'
+        j = b.map(avro.AvroToJSON(message_schema=avro_schema))
+
+    .. versionadded:: 1.2
+
+    Attributes
+    ----------
+    message_schema : str|file
+        Avro schema to deserialize the binary Avro message to JSON. If not specified, it is expected that the schema is embedded in the message.
+    """
+
+    def __init__(self, message_schema):
+
+        self.message_schema = message_schema
+        self.vm_arg = None
+        
+    @property
+    def vm_arg(self):
+        """
+            str: Arbitrary JVM arguments can be passed to the Streams operator
+        """
+        return self._vm_arg
+
+    @vm_arg.setter
+    def vm_arg(self, value):
+        self._vm_arg = value
+
+    def populate(self, topology, stream, schema, name, **options):
+
+        _op = _AvroToJSON(stream, schema=CommonSchema.Json, vmArg=self.vm_arg, name=name)
+        if self.message_schema is not None:
+            _op.params['avroMessageSchemaFile'] = _op.expression('getThisToolkitDir()+"/'+_add_avro_message_schema_file(topology, self.message_schema)+'"')
+        return _op.outputs[0]
+
+
+
+class JSONToAvro(streamsx.topology.composite.Map):
+    """
+    Converts JSON strings into binary Avro messages with schema :py:const:`CommonSchema.Binary`
+
+    Supports :py:const:`CommonSchema.Json` as input and returns output stream with schema :py:const:`CommonSchema.Binary`.
+
+    Example mapping stream ``j`` with JSON string to stream ``b`` with binary AVRO messages::
+
+        import streamsx.avro as avro
+        topo = Topology()
+
+        avro_schema = '{"type" : "record", "name" : "hw_schema", "fields" : [{"name" : "a", "type" : "string"}]}'
+        j = topo.source([{'a': 'Hello'}, {'a': 'World'}, {'a': '!'}]).as_json()
+        b = j.map(avro.JSONToAvro(message_schema=avro_schema))
+
+    .. versionadded:: 1.2
+
+    Attributes
+    ----------
+    message_schema : str|file
+        Avro schema to deserialize the binary Avro message to JSON. If not specified, it is expected that the schema is embedded in the message.
+    embed_avro_schema: bool
+        Embed the schema in the generated Avro message. When generating Avro messages that must be persisted to a file system, the schema is expected to be included in the file. If this parameter is set to true, incoming JSON tuples are batched and a large binary object that contains the Avro schema and 1 or more messages is generated. Also, you must specify one of the parameters (bytes_per_message, tuples_per_message, time_per_message) that controls when Avro message block is submitted to the output port, otherwise it would expect a window punctuation marker. After submitting the Avro message to the output port, a punctuation is generated so that the receiving operator can potentially create a new file. 
+    time_per_file: int|float|datetime.timedelta
+        Specifies the approximate time, in seconds, after before the Avro message block is submitted to the output port. Only valid if Avro schema is embedded. The ``bytes_per_message``, ``time_per_message`` and ``tuples_per_message`` parameters are mutually exclusive.
+    tuples_per_file: int
+        The minimum number of tuples that the Avro message block should contain before it is submitted to the output port. Only valid if Avro schema is embedded. The ``bytes_per_message``, ``time_per_message`` and ``tuples_per_message`` parameters are mutually exclusive. 
+    bytes_per_file: int
+        The minimum size in bytes that the Avro message block should be before it is submitted to the output port. Only valid if Avro schema is embedded. The ``bytes_per_message``, ``time_per_message`` and ``tuples_per_message`` parameters are mutually exclusive.
+    """
+
+    def __init__(self, message_schema, embed_avro_schema=False, time_per_message=None, tuples_per_message=None, bytes_per_message=None):
+
+        self.message_schema = message_schema
+        self.embed_avro_schema = embed_avro_schema
+        self.time_per_message = time_per_message
+        self.tuples_per_message = tuples_per_message
+        self.bytes_per_message = bytes_per_message
+        self.vm_arg = None
+        
+    @property
+    def vm_arg(self):
+        """
+            str: Arbitrary JVM arguments can be passed to the Streams operator
+        """
+        return self._vm_arg
+
+    @vm_arg.setter
+    def vm_arg(self, value):
+        self._vm_arg = value
+
+    def populate(self, topology, stream, schema, name, **options):
+
+        # check bytes_per_message, time_per_message and tuples_per_message parameters
+        if (self.time_per_message is not None and self.tuples_per_message is not None) or (self.bytes_per_message is not None and self.time_per_message is not None) or (self.tuples_per_message is not None and self.bytes_per_message is not None):
+            raise ValueError("The parameters are mutually exclusive: bytes_per_message, time_per_message, tuples_per_message")
+
+        _op = _JSONToAvro(stream, schema=AvroStreamSchema, vmArg=self.vm_arg, name=name)
+        _op.params['avroMessageSchemaFile'] = _op.expression('getThisToolkitDir()+"/'+_add_avro_message_schema_file(topology, self.message_schema)+'"')
+
+        if self.embed_avro_schema is True:
+            _op.params['embedAvroSchema'] = _op.expression('true')
+            if self.time_per_message is None and self.tuples_per_message is None and self.bytes_per_message is None:
+                _op.params['submitOnPunct'] = _op.expression('true')
+            if self.time_per_message is not None:
+                _op.params['timePerMessage'] = streamsx.spl.types.float64(_check_time_param(self.time_per_message, 'time_per_message'))
+            if self.tuples_per_message is not None:
+                _op.params['tuplesPerMessage'] = streamsx.spl.types.int64(self.tuples_per_message)
+            if self.bytes_per_message is not None:
+                _op.params['bytesPerMessage'] = streamsx.spl.types.int64(self.bytes_per_message)
+        return _op.outputs[0]
 
 
 class _AvroToJSON(streamsx.spl.op.Invoke):
