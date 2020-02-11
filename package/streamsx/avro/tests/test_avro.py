@@ -53,6 +53,27 @@ class TestAvro(TestCase):
         # Run the test
         tester.test(self.test_ctxtype, self.test_config, always_collect_logs=True)
 
+    def test_hw_json_composite(self):
+        topo = Topology('test_hw_json_composite')
+        if self.avro_toolkit_home is not None:
+            streamsx.spl.toolkit.add_toolkit(topo, self.avro_toolkit_home)
+
+        avro_schema = '{"type" : "record", "name" : "hw_schema", "fields" : [{"name" : "a", "type" : "string"}]}'
+        s = topo.source([{'a': 'Hello'}, {'a': 'World'}, {'a': '!'}]).as_json()
+        
+        # convert json to avro blob
+        o = s.map(avro.JSONToAvro(avro_schema))
+        # convert avro blob to json
+        res = o.map(avro.AvroToJSON(avro_schema))
+        res.print()
+
+        tester = Tester(topo)
+        tester.tuple_count(res, 3)
+        #tester.run_for(60)
+   
+        # Run the test
+        tester.test(self.test_ctxtype, self.test_config, always_collect_logs=True)
+
     def test_hw_embed_schema(self):
         topo = Topology('test_hw_embed_schema')
         if self.avro_toolkit_home is not None:
@@ -73,6 +94,7 @@ class TestAvro(TestCase):
    
         # Run the test
         tester.test(self.test_ctxtype, self.test_config, always_collect_logs=True)
+
 
 class TestDistributed(TestAvro):
     def setUp(self):
