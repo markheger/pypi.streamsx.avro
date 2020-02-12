@@ -96,6 +96,10 @@ def json_to_avro(stream, message_schema, embed_avro_schema=False, time_per_messa
 
     Returns:
         Output Stream with schema :py:const:`CommonSchema.Binary` (Avro records in binary format).
+
+    .. deprecated:: 1.2.0
+        Use the :py:class:`~JSONToAvro`.
+
     """
 
     # check bytes_per_message, time_per_message and tuples_per_message parameters
@@ -130,6 +134,9 @@ def avro_to_json(stream, message_schema=None, name=None):
 
     Returns:
         Output Stream with schema :py:const:`CommonSchema.Json`.
+
+    .. deprecated:: 1.2.0
+        Use the :py:class:`~AvroToJSON`.
     """
 
     _op = _AvroToJSON(stream, schema=CommonSchema.Json, name=name)
