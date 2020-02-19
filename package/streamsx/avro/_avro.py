@@ -85,7 +85,7 @@ def json_to_avro(stream, message_schema, embed_avro_schema=False, time_per_messa
     """Converts JSON strings into binary Avro messages with schema :py:const:`CommonSchema.Binary`. 
 
     Args:
-        stream(Stream): Stream of tuples containing the JSON records. Supports :py:const:`CommonSchema.Json` as input.
+        stream(streamsx.topology.topology.Stream): Stream of tuples containing the JSON records. Supports :py:const:`CommonSchema.Json` as input.
         message_schema(str|file): Avro schema to serialize the Avro message from JSON input.
         embed_avro_schema(bool): Embed the schema in the generated Avro message. When generating Avro messages that must be persisted to a file system, the schema is expected to be included in the file. If this parameter is set to true, incoming JSON tuples are batched and a large binary object that contains the Avro schema and 1 or more messages is generated. Also, you must specify one of the parameters (bytes_per_message, tuples_per_message, time_per_message) that controls when Avro message block is submitted to the output port, otherwise it would expect a window punctuation marker. After submitting the Avro message to the output port, a punctuation is generated so that the receiving operator can potentially create a new file. 
         time_per_file(int|float|datetime.timedelta): Specifies the approximate time, in seconds, after before the Avro message block is submitted to the output port. Only valid if Avro schema is embedded. The ``bytes_per_message``, ``time_per_message`` and ``tuples_per_message`` parameters are mutually exclusive.
@@ -95,7 +95,7 @@ def json_to_avro(stream, message_schema, embed_avro_schema=False, time_per_messa
         name(str): Operator name in the Streams context, defaults to a generated name.
 
     Returns:
-        Output Stream with schema :py:const:`CommonSchema.Binary` (Avro records in binary format).
+        :py:class:`topology_ref:streamsx.topology.topology.Stream`: Output Stream with schema :py:const:`CommonSchema.Binary` (Avro records in binary format).
 
     .. deprecated:: 1.2.0
         Use the :py:class:`~JSONToAvro`.
@@ -128,12 +128,12 @@ def avro_to_json(stream, message_schema=None, name=None):
     """Converts binary Avro messages to JSON strings.
 
     Args:
-        stream(Stream): Stream of tuples containing the binary Avro records. Supports :py:const:`CommonSchema.Binary` as input.
+        stream(streamsx.topology.topology.Stream): Stream of tuples containing the binary Avro records. Supports :py:const:`CommonSchema.Binary` as input.
         message_schema(str|file): Avro schema to deserialize the binary Avro message to JSON. If not specified, it is expected that the schema is embedded in the message.
         name(str): Operator name in the Streams context, defaults to a generated name.
 
     Returns:
-        Output Stream with schema :py:const:`CommonSchema.Json`.
+        :py:class:`topology_ref:streamsx.topology.topology.Stream`: Output Stream with schema :py:const:`CommonSchema.Json`.
 
     .. deprecated:: 1.2.0
         Use the :py:class:`~AvroToJSON`.
